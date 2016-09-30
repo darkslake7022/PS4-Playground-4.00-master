@@ -3,7 +3,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta charset="utf-8">
-    <title>PS4 Playground :: Documentation</title>
+    <title>PS4 Playground :: Documentation [NOTES]</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="This site's description is not available due to the robots.txt">
     <meta name="author" content="Specter">
@@ -32,9 +32,9 @@
 		<!-- Collect the nav links, forms, and other content for toggling -->
 		<div class="collapse navbar-collapse navbar-ex1-collapse">
 			<ul class="nav navbar-nav">
-				<li class="active"><a href="#">Index</a></li>
+				<li><a href="index.html">Index</a></li>
         <li><a href="setup.html">Setting Up</a></li>
-        <li><a href="notes.html">Notes (Syscalls, Modules, Etc.)</a></li>
+        <li class="active"><a href="#">Notes (Syscalls, Modules, Etc.)</a></li>
         <li><a href="changelog.html">Change Log</a></li>
 			</ul>
 			<ul class="nav navbar-nav navbar-right">
@@ -46,22 +46,22 @@
 
 		<!-- Jumbotron -->
 		<div class="jumbotron">
-      <h1>PS4 Playground Documentation</h1>
+      <h1>Notes</h1>
+      <h2><div style="color: #3189CA;"><b>Quick Links</b></div></h2>
+      <ul style="list-style: none;">
+        <li><a href="#syscalls">System Call 593 and Dumping Modules</a></li>
+      </ul>
+      <hr /><br />
+      <h2><div style="color: #3189CA;"><b>System Call 593 and Dumping Modules</b></div></h2>
       <p class="lead">
-        Welcome to the PS4 Playground official documentation. This sub-site has been created as a means for how to set up PS4 Playground for personal use, as well as notes I make that I find as I work on the playground's development, including system calls, modules, etc. The site also features a change log page, which features all past
-        and current versions and their descriptions.
+        Through the work done on 1.76 by CTurt, in his Introduction to PS4's security, and userland ROP he documented about "Dumping additional modules". While much of this information is still correct (having to load the module, getting the base address, etc.), there seems to have been an update in regards to the <i>sys_dynlib_get_info</i> system call (#593). It no longer returns any useful information we need for dumping modules.
+        <br />
+        <center><img src="http://i.imgur.com/IxaLB1h.png" width="60%" height="60%" /></center>
+      <p>
+        It still returns the name of the module at 0x8, however at 0x108, 0x110, 0x118, and 0x120, the code base, code size, data base, and data size (respectively) are no longer there, instead there are zeros. So somewhere between 1.76 and 3.55, the mean people at Sony decided to remove this information from being put in the buffer we pass through argument.
       </p>
       <p>
-        The information posted on this website as well as this entire website as a whole wouldn't be possible in it's current state thanks to the following:
-
-        <ul>
-          <li>Fire30</li>
-          <li>Xerpi</li>
-          <li>XYZ</li>
-          <li>XorLoser</li>
-          <li>Maxton</li>
-          <li>CTurt</li>
-        </ul>
+        So then how do we get the base address for dumping? We have to use system call 608, <i>sys_dynlib_get_info_ex</i>, where the code base is stored at offset 0x110. How do we get the code size + data size? Well.... we can't. At least not through a system call as far as I know. One way we can get an idea of the size to dump for the module is through the module headers and adding up the memsize for .text and .data segments.
       </p>
     </div>
 
